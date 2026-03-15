@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Recycling Organizations - E-Waste Recycling</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- ✅ Leaflet CSS via jsDelivr (CSP-compliant) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+
+  <style>
+    body { background: #f8f9fa; }
+    .card { border-radius: 12px; }
+    .org-photo { height: 200px; object-fit: cover; border-radius: 8px; }
+    .leaflet-container { border-radius: 10px; }
+    .no-orgs { text-align: center; color: #777; margin-top: 30px; font-size: 1.2rem; }
+  </style>
+</head>
+<body>
+  <div class="container mt-4">
+    <h2 class="mb-4 text-center">🏢 Recycling Organizations</h2>
+
+    <div class="row g-4" id="org-container">
+      <!-- Organizations will be dynamically inserted here -->
+    </div>
+
+    <div class="text-center mt-3">
+      <a href="dashboard.html" class="btn btn-secondary">⬅ Back to Dashboard</a>
+    </div>
+  </div>
+
+  <!-- ✅ Leaflet JS via jsDelivr (CSP-compliant) -->
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    async function fetchOrganizations() {
+      try {
+        // Bypass cache to prevent 304
+        const res = await fetch("/api/organizations", { cache: "no-store" });
+        if (!res.ok && res.status !== 304) throw new Error("Failed to fetch organizations");
+
+        const orgs = await res.json().catch(() => []);
+        const container = document.getElementById("org-container");
+        container.innerHTML = "";
+
+        if (orgs.length === 0) {
+          container.innerHTML = `<div class="no-orgs">No organizations available at the moment.</div>`;
+          return;
+        }
+
+        orgs.forEach((org, index) => {
+          const col = document.createElement("div");
+          col.className = "col-md-6";
+
+          col.innerHTML = `
+            <div class="card p-3 shadow-sm">
+              <img src="${org.logo || 'placeholder.png'}" class="org-photo mb-3" alt="${org.name}">
+              <h5 class="text-primary">${org.name}</h5>
+              <p><strong>📞 Contact:</strong> ${org.contact || "N/A"}</p>
+              <p><strong>📧 Email:</strong> ${org.email || "N/A"}</p>
+              <p><strong>⏰ Hours:</strong> ${org.hours || "N/A"}</p>
+              <p><strong>🏠 Address:</strong> ${org.address || "N/A"}</p>
+              <div id="map-org-${index}" style="height:200px;"></div>
+            </div>
+          `;
+          container.appendChild(col);
+
+          // Leaflet map
+          const coords = org.coordinates || [20.5937, 78.9629]; // Default India center
+          const map = L.map(`map-org-${index}`).setView(coords, 13);
+
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+          }).addTo(map);
+
+          L.marker(coords).addTo(map).bindPopup(`<strong>${org.name}</strong><br>${org.address || "Location not set"}`);
+        });
+
+      } catch (err) {
+        console.error("❌ Error fetching organizations:", err);
+        const container = document.getElementById("org-container");
+        container.innerHTML = `<div class="no-orgs">Failed to load organizations. Please try again later.</div>`;
+      }
+    }
+
+    fetchOrganizations();
+  </script>
+</body>
+</html>

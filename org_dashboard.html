@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Organization Dashboard</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    body { background: #f4f6f9; }
+    .dashboard-container {
+      max-width: 1200px; margin: 20px auto; padding: 20px;
+      background: #fff; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .preview-img {
+      width: 60px; height: 60px; object-fit: cover;
+      border-radius: 6px; margin: 3px; cursor: pointer; transition: transform 0.2s;
+    }
+    .preview-img:hover { transform: scale(1.1); }
+    #map { height: 300px; border-radius: 10px; }
+    #imageModal .modal-body {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    #imageModal img {
+      max-width: 90%; max-height: 400px; border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-container">
+    <h2 class="mb-4">Organization Dashboard</h2>
+
+    <!-- Organization Profile -->
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white">Organization Profile</div>
+      <div class="card-body">
+        <form id="orgProfileForm">
+          <div class="mb-3">
+            <label class="form-label">Organization Name</label>
+            <input type="text" class="form-control" id="orgName" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Contact Details</label>
+            <input type="text" class="form-control" id="orgContact" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Operating Hours</label>
+            <input type="text" class="form-control" id="orgHours" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Address</label>
+            <textarea class="form-control" id="orgAddress" required></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Organization Logo</label>
+            <input type="file" class="form-control" id="orgLogo" accept="image/*">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Company Images</label>
+            <input type="file" class="form-control" id="companyImages" accept="image/*" multiple>
+          </div>
+          <button type="submit" class="btn btn-success">Save Profile</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Map Section -->
+    <div class="card mb-4">
+      <div class="card-header bg-info text-white">Organization Location</div>
+      <div class="card-body">
+        <div id="map"></div>
+      </div>
+    </div>
+
+    <!-- Recycle Devices -->
+    <div class="card">
+      <div class="card-header bg-success text-white">Recycle Devices</div>
+      <div class="card-body">
+        <table class="table table-bordered table-hover">
+          <thead class="table-light">
+            <tr>
+              <th>Device Type</th>
+              <th>Brand & Model</th>
+              <th>Year</th>
+              <th>Condition</th>
+              <th>Images</th>
+              <th>User</th>
+              <th>Contact</th>
+              <th>Address</th>
+              <th>Status</th>
+              <th>Update Status</th>
+              <th>Assign Delivery Boy</th>
+            </tr>
+          </thead>
+          <tbody id="devicesTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image Modal -->
+  <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Device Images</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body text-center">
+          <button class="btn btn-outline-secondary btn-sm" onclick="prevImage()">⟨ Prev</button>
+          <img id="modalImage" src="" alt="Device Image">
+          <button class="btn btn-outline-secondary btn-sm" onclick="nextImage()">Next ⟩</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <script>
+    // Initialize map
+    const map = L.map('map').setView([20.5937, 78.9629], 5);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+    const marker = L.marker([20.5937, 78.9629]).addTo(map);
+
+    // Profile Save Example
+    document.getElementById("orgProfileForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData();
+      formData.append("name", document.getElementById("orgName").value);
+      formData.append("contact", document.getElementById("orgContact").value);
+      formData.append("hours", document.getElementById("orgHours").value);
+      formData.append("address", document.getElementById("orgAddress").value);
+
+      if (document.getElementById("orgLogo").files[0]) {
+        formData.append("logo", document.getElementById("orgLogo").files[0]);
+      }
+      if (document.getElementById("companyImages").files.length > 0) {
+        Array.from(document.getElementById("companyImages").files).forEach(file => {
+          formData.append("companyImages", file);
+        });
+      }
+
+      try {
+        const res = await fetch("/api/org/profile", {
+          method: "POST",
+          body: formData
+        });
+        if (res.ok) {
+          alert("Organization Profile Saved!");
+          loadOrgProfile();
+        } else {
+          alert("Failed to save profile!");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Error saving profile!");
+      }
+    });
+
+    // Load profile when page loads
+    async function loadOrgProfile() {
+      try {
+        const res = await fetch("/api/org/profile");
+        if (res.ok) {
+          const data = await res.json();
+          if (data) {
+            document.getElementById("orgName").value = data.name || "";
+            document.getElementById("orgContact").value = data.contact || "";
+            document.getElementById("orgHours").value = data.hours || "";
+            document.getElementById("orgAddress").value = data.address || "";
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching profile", err);
+      }
+    }
+    loadOrgProfile();
+
+    // --- Gallery state ---
+    let galleryImages = [];
+    let currentImageIndex = 0;
+
+    function openImage(images, index) {
+      galleryImages = images;
+      currentImageIndex = index;
+      document.getElementById("modalImage").src = galleryImages[currentImageIndex];
+      const modal = new bootstrap.Modal(document.getElementById("imageModal"));
+      modal.show();
+    }
+
+    function nextImage() {
+      if (galleryImages.length > 0) {
+        currentImageIndex = (currentImageIndex + 1) % galleryImages.length;
+        document.getElementById("modalImage").src = galleryImages[currentImageIndex];
+      }
+    }
+
+    function prevImage() {
+      if (galleryImages.length > 0) {
+        currentImageIndex = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
+        document.getElementById("modalImage").src = galleryImages[currentImageIndex];
+      }
+    }
+
+    // --- STATIC EXAMPLE DATA ---
+    const exampleDevices = [
+      {
+        _id: "1",
+        deviceType: "Laptop",
+        brandModel: "Dell Inspiron 15",
+        purchaseYear: "2018",
+        condition: "Good",
+        option: "Recycle for Reward",
+        images: {
+          front: "https://via.placeholder.com/150/0000FF/FFFFFF?text=Laptop+Front",
+          side: "https://via.placeholder.com/150/FF0000/FFFFFF?text=Laptop+Side",
+          top: "https://via.placeholder.com/150/00FF00/FFFFFF?text=Laptop+Top"
+        },
+        fullName: "Anushka Kolhe",
+        email: "anushka@example.com",
+        phoneNumber: "+91 9876543210",
+        address: "Pune, Maharashtra, India",
+        status: "Accept"
+      },
+      {
+        _id: "2",
+        deviceType: "Mobile",
+        brandModel: "Samsung Galaxy S10",
+        purchaseYear: "2019",
+        condition: "Fair",
+        option: "Recycle for Reward",
+        images: {
+          front: "https://via.placeholder.com/150/FFC300/000000?text=Mobile+Front",
+          side: "https://via.placeholder.com/150/DAF7A6/000000?text=Mobile+Side"
+        },
+        fullName: "Ravi Sharma",
+        email: "ravi@example.com",
+        phoneNumber: "+91 9123456780",
+        address: "Nagpur, Maharashtra, India",
+        status: "On the Way"
+      }
+    ];
+
+    function renderDevices(devices) {
+      const tbody = document.getElementById("devicesTableBody");
+      tbody.innerHTML = "";
+
+      devices.forEach(device => {
+        if (device.option !== "Recycle for Reward") return;
+
+        const images = [];
+        if (device.images.front) images.push(device.images.front);
+        if (device.images.side) images.push(device.images.side);
+        if (device.images.top) images.push(device.images.top);
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${device.deviceType}</td>
+          <td>${device.brandModel}</td>
+          <td>${device.purchaseYear}</td>
+          <td>${device.condition}</td>
+          <td>
+            ${images.map((img, i) => `<img src="${img}" class="preview-img" onclick="openImage(${JSON.stringify(images)}, ${i})">`).join("")}
+          </td>
+          <td>${device.fullName}</td>
+          <td>${device.email}<br>${device.phoneNumber}</td>
+          <td>${device.address}</td>
+          <td><span class="badge bg-secondary">${device.status}</span></td>
+          <td>
+            <select class="form-select form-select-sm" onchange="updateStatus('${device._id}', this.value)">
+              <option value="Accept" ${device.status==="Accept"?"selected":""}>Accept</option>
+              <option value="Under Review" ${device.status==="Under Review"?"selected":""}>Under Review</option>
+              <option value="Pickup Pending" ${device.status==="Pickup Pending"?"selected":""}>Pickup Pending</option>
+              <option value="On the Way" ${device.status==="On the Way"?"selected":""}>On the Way</option>
+              <option value="At Recycling Center" ${device.status==="At Recycling Center"?"selected":""}>At Recycling Center</option>
+              <option value="Disposed" ${device.status==="Disposed"?"selected":""}>Disposed</option>
+            </select>
+          </td>
+          <td>
+            ${device.status === "On the Way" ? `
+              <select class="form-select form-select-sm" onchange="assignDeliveryBoy('${device._id}', this.value)">
+                <option value="">Assign Delivery Boy</option>
+                <option value="DB101">Ramesh (DB101)</option>
+                <option value="DB102">Suresh (DB102)</option>
+              </select>
+            ` : `<em class="text-muted">N/A</em>`}
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function updateStatus(id, status) {
+      alert(`Status of device ${id} updated to ${status} (Integrate API later)`);
+      renderDevices(exampleDevices.map(d => d._id === id ? {...d, status} : d));
+    }
+
+    function assignDeliveryBoy(id, deliveryBoy) {
+      if (!deliveryBoy) return;
+      alert(`Device ${id} assigned to ${deliveryBoy} (Integrate API later)`);
+    }
+
+    renderDevices(exampleDevices);
+  </script>
+</body>
+</html>

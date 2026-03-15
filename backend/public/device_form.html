@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Device - E-Waste Recycling</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #e0f7fa, #e3f2fd);
+      font-family: "Segoe UI", sans-serif;
+    }
+    .form-container {
+      background: #fff;
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 900px;
+      margin: auto;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    h2 { font-weight: 700; color: #0d47a1; }
+    .option-card {
+      border: 3px solid transparent;
+      border-radius: 15px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease-in-out;
+      background: #fafafa;
+      height: 180px;
+    }
+    .option-card img {
+      height: 60px;
+      margin-bottom: 10px;
+      transition: transform 0.3s;
+    }
+    .option-card:hover img { transform: scale(1.1); }
+    .option-card:hover {
+      border-color: #1976d2;
+      background: #e3f2fd;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+    }
+    input[type="radio"]:checked + .option-card {
+      border-color: #1976d2;
+      background: #bbdefb;
+    }
+    label.form-label { font-weight: 600; }
+    .btn-success {
+      background: linear-gradient(90deg, #43a047, #66bb6a);
+      border: none;
+      padding: 12px;
+      font-size: 18px;
+      border-radius: 12px;
+    }
+    .btn-success:hover {
+      background: linear-gradient(90deg, #2e7d32, #388e3c);
+    }
+    .btn-secondary { border-radius: 10px; }
+  </style>
+</head>
+<body>
+  <div class="container mt-5 mb-5">
+    <div class="form-container">
+      <h2 class="mb-4 text-center">🌍 Upload Your Device</h2>
+
+      <form id="deviceForm" enctype="multipart/form-data">
+        <!-- Device Type -->
+        <div class="mb-3">
+          <label class="form-label">Device Type</label>
+          <select class="form-select" name="deviceType" required>
+            <option value="">-- Select Device --</option>
+            <option>Phone</option>
+            <option>Laptop</option>
+            <option>Tablet</option>
+            <option>Other</option>
+          </select>
+        </div>
+
+        <!-- Brand & Model -->
+        <div class="mb-3">
+          <label class="form-label">Brand & Model</label>
+          <input type="text" class="form-control" name="brandModel" placeholder="e.g. Dell Inspiron 15" required>
+        </div>
+
+        <!-- Condition -->
+        <div class="mb-3">
+          <label class="form-label">Condition</label>
+          <select class="form-select" name="condition" required>
+            <option value="">-- Select Condition --</option>
+            <option>Working</option>
+            <option>Broken</option>
+            <option>Old but usable</option>
+          </select>
+        </div>
+
+        <!-- Purchase Year -->
+        <div class="mb-3">
+          <label class="form-label">Purchase Year</label>
+          <input type="number" class="form-control" name="purchaseYear" min="2000" max="2025" placeholder="e.g. 2020" required>
+        </div>
+
+        <!-- Device Images -->
+        <h5 class="mt-4">📸 Upload Device Images</h5>
+        <div class="row">
+          <div class="col-md-4 mb-3">
+            <label class="form-label">Front View</label>
+            <input type="file" class="form-control" name="frontImage" accept="image/*" required>
+          </div>
+          <div class="col-md-4 mb-3">
+            <label class="form-label">Side View</label>
+            <input type="file" class="form-control" name="sideImage" accept="image/*">
+          </div>
+          <div class="col-md-4 mb-3">
+            <label class="form-label">Top View</label>
+            <input type="file" class="form-control" name="topImage" accept="image/*">
+          </div>
+        </div>
+
+        <!-- Options -->
+        <h5 class="mt-4">⚡ Choose Option</h5>
+        <div class="row justify-content-center text-center">
+          <div class="col-md-3">
+            <input type="radio" name="option" id="reward" value="Recycle" class="d-none">
+            <label for="reward" class="option-card">
+              <img src="https://img.icons8.com/color/96/prize.png" alt="Reward">
+              <h6>Recycle for Reward</h6>
+            </label>
+          </div>
+          <div class="col-md-3">
+            <input type="radio" name="option" id="sell" value="Sell" class="d-none">
+            <label for="sell" class="option-card">
+              <img src="https://img.icons8.com/color/96/sell.png" alt="Sell">
+              <h6>Sell for Scrap</h6>
+            </label>
+          </div>
+        </div>
+
+        <!-- Organization Selection -->
+        <div class="mb-3 mt-4" id="organizationField" style="display:none;">
+          <label class="form-label">Select Organization</label>
+          <select class="form-select" name="organization" id="organizationSelect">
+            <option value="">-- Select Organization --</option>
+          </select>
+        </div>
+
+        <!-- Price Field -->
+        <div class="mb-3 mt-4" id="priceField" style="display:none;">
+          <label class="form-label">Expected Price (₹)</label>
+          <input type="number" class="form-control" name="price" placeholder="Enter price you expect">
+        </div>
+
+        <!-- User Contact -->
+        <h5 class="mt-4">📍 User Contact Information</h5>
+        <div class="mb-3">
+          <label class="form-label">Full Name</label>
+          <input type="text" class="form-control" name="fullName" id="fullName" placeholder="Enter your name" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Email ID</label>
+          <input type="email" class="form-control" name="email" id="email" placeholder="Enter your email" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Phone Number</label>
+          <input type="tel" class="form-control" name="phoneNumber" id="phoneNumber" placeholder="Enter phone number" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Address</label>
+          <textarea class="form-control" name="address" rows="3" placeholder="Enter full address" required></textarea>
+        </div>
+
+        <!-- Pickup Preferences -->
+        <div class="mb-3">
+          <label class="form-label">Pickup Time Slot (Optional)</label>
+          <input type="datetime-local" class="form-control" name="pickupTime">
+        </div>
+
+        <button type="submit" class="btn btn-success w-100 mt-3">✅ Submit Device</button>
+      </form>
+
+      <div class="text-center mt-4">
+        <a href="Index.html" class="btn btn-secondary">⬅ Back to Dashboard</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+const rewardOption = document.getElementById("reward");
+const sellOption = document.getElementById("sell");
+const organizationField = document.getElementById("organizationField");
+const priceField = document.getElementById("priceField");
+const orgSelect = document.getElementById("organizationSelect");
+
+// Show/hide organization and price fields based on option
+function handleOption() {
+  if (rewardOption.checked) {
+    organizationField.style.display = "block";
+    priceField.style.display = "none";
+  } else if (sellOption.checked) {
+    organizationField.style.display = "none";
+    priceField.style.display = "block";
+  }
+}
+
+rewardOption.addEventListener("change", handleOption);
+sellOption.addEventListener("change", handleOption);
+
+// Fetch organizations and populate select box
+async function loadOrganizations() {
+  try {
+    const res = await fetch("http://localhost:5000/api/organizations");
+    if (!res.ok) throw new Error("Failed to fetch organizations");
+
+    const orgs = await res.json();
+    orgSelect.innerHTML = '<option value="">-- Select Organization --</option>';
+
+    if (orgs.length === 0) {
+      orgSelect.innerHTML = '<option value="">No organizations available</option>';
+      return;
+    }
+
+    orgs.forEach(org => {
+      const option = document.createElement("option");
+      option.value = org._id;
+      option.textContent = org.name;
+      orgSelect.appendChild(option);
+    });
+  } catch (err) {
+    console.error("Error fetching organizations:", err);
+    orgSelect.innerHTML = '<option value="">Failed to load organizations</option>';
+  }
+}
+
+loadOrganizations();
+
+// ✅ Autofill user info if logged in
+function autofillUser() {
+  const user = JSON.parse(localStorage.getItem("user")); // stored at login
+  if (user) {
+    document.getElementById("fullName").value = user.fullName || "";
+    document.getElementById("email").value = user.email || "";
+    document.getElementById("phoneNumber").value = user.phoneNumber || "";
+  }
+}
+autofillUser();
+
+// Handle form submission with JWT token
+document.getElementById("deviceForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+
+  // Validation
+  if (formData.get("option") === "Recycle" && !formData.get("organization")) {
+    return alert("Please select an organization for recycling!");
+  }
+  if (formData.get("option") === "Sell" && !formData.get("price")) {
+    return alert("Please enter expected price for selling!");
+  }
+
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) return alert("❌ You must be logged in to submit a device.");
+
+    const res = await fetch("http://localhost:5000/api/devices", {
+      method: "POST",
+      body: formData,
+      headers: { Authorization: `Bearer ${token}` } // send token
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      alert("✅ Device submitted successfully!");
+      e.target.reset();
+      organizationField.style.display = "none";
+      priceField.style.display = "none";
+      autofillUser(); // refill user info
+    } else {
+      alert("❌ " + data.message);
+    }
+  } catch (err) {
+    console.error(err);
+    alert("❌ Error submitting form");
+  }
+});
+</script>
+</body>
+</html>

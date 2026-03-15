@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Test Organization Dashboard</title>
+</head>
+<body>
+  <h2>Create Organization Profile</h2>
+
+  <!-- Organization Form -->
+  <form id="orgForm" action="http://localhost:5000/api/organizations" method="POST" enctype="multipart/form-data">
+    <label>Name:</label>
+    <input type="text" name="name" required><br><br>
+
+    <label>Email:</label>
+    <input type="email" name="email" required><br><br>
+
+    <label>Phone:</label>
+    <input type="text" name="phone" required><br><br>
+
+    <label>Address:</label>
+    <input type="text" name="address" required><br><br>
+
+    <label>Hours:</label>
+    <input type="text" name="hours" placeholder="Mon-Fri: 9AM-6PM"><br><br>
+
+    <label>Latitude:</label>
+    <input type="text" name="lat"><br><br>
+
+    <label>Longitude:</label>
+    <input type="text" name="lng"><br><br>
+
+    <label>Logo:</label>
+    <input type="file" name="logo"><br><br>
+
+    <label>Company Images:</label>
+    <input type="file" name="companyImages" multiple><br><br>
+
+    <button type="submit">Save Profile</button>
+  </form>
+
+  <hr>
+
+  <h2>Get All Organizations</h2>
+  <button onclick="fetchOrgs()">Fetch Organizations</button>
+  <pre id="orgList"></pre>
+
+  <script>
+    async function fetchOrgs() {
+      const res = await fetch("http://localhost:5000/api/organizations");
+      const data = await res.json();
+      document.getElementById("orgList").textContent = JSON.stringify(data, null, 2);
+    }
+  </script>
+</body>
+</html>

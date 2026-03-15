@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nearby Recycling Centers</title>
+
+  <!-- ✅ CSP-safe Leaflet CSS (jsDelivr) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; background: #f8f9fa; }
+    h2 { text-align: center; margin: 15px 0; }
+    #map { height: 85vh; width: 100%; }
+    .leaflet-popup-content-wrapper { border-radius: 10px; }
+  </style>
+</head>
+<body>
+  <h2>📍 Nearby Recycling Centers</h2>
+  <div id="map"></div>
+
+  <!-- ✅ CSP-safe Leaflet JS (jsDelivr) -->
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" defer></script>
+
+  <script defer>
+    window.addEventListener('DOMContentLoaded', () => {
+      console.log("✅ Page loaded — initializing map");
+
+      const defaultLat = 20.0;
+      const defaultLng = 73.78;
+
+      const map = L.map('map').setView([defaultLat, defaultLng], 6);
+      console.log("🗺️ Map created");
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+      console.log("🧱 Tile layer added");
+
+      const centers = [
+        { name: "EcoRecycle Mumbai", lat: 19.0760, lng: 72.8777, address: "Mumbai, Maharashtra" },
+        { name: "GreenTech Pune", lat: 18.5204, lng: 73.8567, address: "Pune, Maharashtra" },
+        { name: "Recycle Hub Bangalore", lat: 12.9716, lng: 77.5946, address: "Bangalore, Karnataka" },
+        { name: "Waste2Wealth Delhi", lat: 28.6139, lng: 77.2090, address: "Delhi, India" },
+        { name: "Nashik Recycling Hub", lat: 20.0, lng: 73.78, address: "Nashik, Maharashtra" }
+      ];
+
+      const greenIcon = L.icon({
+        iconUrl: 'https://cdn.jsdelivr.net/gh/pointhi/leaflet-color-markers@master/img/marker-icon-green.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+      });
+
+      function getDistance(lat1, lng1, lat2, lng2) {
+        const R = 6371;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLng = (lng2 - lng1) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) ** 2 +
+          Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+          Math.sin(dLng / 2) ** 2;
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+      }
+
+      function showMap(userLat, userLng) {
+        console.log("📍 Showing map at:", userLat, userLng);
+
+        const userMarker = L.marker([userLat, userLng])
+          .addTo(map)
+          .bindPopup("<b>You are here</b>")
+          .openPopup();
+
+        const allMarkers = [];
+
+        centers.forEach(c => {
+          const distance = getDistance(userLat, userLng, c.lat, c.lng);
+          const icon = distance <= 200 ? greenIcon : undefined;
+
+          const marker = L.marker([c.lat, c.lng], icon ? { icon } : {})
+            .bindPopup(`<b>${c.name}</b><br>${c.address}<br><b>Distance:</b> ${distance.toFixed(1)} km`)
+            .addTo(map);
+
+          allMarkers.push(marker);
+        });
+
+        const group = L.featureGroup([userMarker, ...allMarkers]);
+        map.fitBounds(group.getBounds().pad(0.2));
+        console.log("✅ Markers added and map adjusted");
+      }
+
+      if (navigator.geolocation) {
+        console.log("🛰️ Requesting geolocation...");
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            console.log("✅ Geolocation success:", pos.coords);
+            showMap(pos.coords.latitude, pos.coords.longitude);
+          },
+          err => {
+            console.warn("⚠️ Geolocation failed:", err.message);
+            showMap(defaultLat, defaultLng);
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+      } else {
+        console.warn("❌ Geolocation not supported");
+        showMap(defaultLat, defaultLng);
+      }
+    });
+  </script>
+</body>
+</html>

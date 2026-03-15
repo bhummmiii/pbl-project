@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Device Tracking</title>
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body { background: #f8f9fa; }
+    .tracking-card { max-width: 900px; margin: 30px auto; }
+    .list-group-item.active {
+      background-color: #0d6efd;
+      border-color: #0d6efd;
+      color: #fff;
+      font-weight: bold;
+    }
+    .list-group-item.completed {
+      background-color: #e9f7ef;
+      color: #198754;
+      font-weight: 600;
+    }
+    .step-label {
+      display: flex; align-items: center; gap: .5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="tracking-card card p-4 shadow-sm">
+      <h2 class="text-primary">📦 Device Tracking</h2>
+      <p class="text-muted">Follow your device journey from acceptance to safe disposal.</p>
+
+      <!-- Status list -->
+      <ul class="list-group mb-3" id="statusList"></ul>
+
+      <!-- Track Delivery Boy button -->
+      <div class="card p-3 shadow-sm mt-3 d-none" id="deliveryTrackingCard">
+        <h5>Device Status: On the Way</h5>
+        <p>Your device is currently being picked up by our delivery partner.</p>
+        <a href="delivery_tracking.html?deliveryBoyId=DELIVERY123" class="btn btn-primary">
+          Track Delivery Boy Live
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Extract device ID from URL: tracking.html?id=66ebd5fa12345
+    const urlParams = new URLSearchParams(window.location.search);
+    const deviceId = urlParams.get("id");
+
+    // Fetch device details from backend
+    fetch(`http://localhost:5000/api/devices/${deviceId}`)
+      .then(res => res.json())
+      .then(device => {
+        if (!device || !device.status) {
+          console.error("Invalid device data");
+          return buildTrackingUI("Accept"); // fallback default
+        }
+        buildTrackingUI(device.status);
+      })
+      .catch(err => {
+        console.error("Error fetching device:", err);
+        buildTrackingUI("Accept"); // fallback
+      });
+
+    // Build the UI based on current status
+    function buildTrackingUI(deviceStatus) {
+      const statusList = document.getElementById("statusList");
+      const deliveryCard = document.getElementById("deliveryTrackingCard");
+      statusList.innerHTML = "";
+
+      const steps = [
+        "Accept",
+        "Under Review",
+        "Pickup Pending",
+        "On the Way",
+        "At Recycling Center",
+        "Disposed"
+      ];
+
+      const currentIndex = steps.indexOf(deviceStatus);
+
+      steps.forEach((step, idx) => {
+        let cls = "list-group-item";
+        let icon = "⏳";
+
+        if (idx < currentIndex) {
+          cls += " completed";
+          icon = "✅";
+        } else if (idx === currentIndex) {
+          cls += " active";
+          icon = "🚚";
+        }
+
+        const li = document.createElement("li");
+        li.className = cls;
+        li.innerHTML = `<span class="step-label">${icon} ${step}</span>`;
+        statusList.appendChild(li);
+      });
+
+      if (deviceStatus === "On the Way") {
+        deliveryCard.classList.remove("d-none");
+      }
+    }
+  </script>
+</body>
+</html>

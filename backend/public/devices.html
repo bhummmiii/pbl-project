@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>My Devices</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+  <style>
+    body { background-color: #f8f9fa; }
+    h2 { margin-top: 20px; margin-bottom: 20px; font-weight: 700; color: #333; }
+    .card { border-radius: 12px; margin-bottom: 15px; border: 1px solid #ddd; }
+    .status-badge { display:inline-block; font-size:.9rem; padding:6px 12px; border-radius:12px; font-weight:500; margin-top:6px; }
+    .status-pending { background:#ffc107; color:#000; }
+    .status-ontheway { background:#17a2b8; color:#fff; }
+    .status-disposed { background:#28a745; color:#fff; }
+    .status-recyclingcenter { background:#007bff; color:#fff; }
+    .status-review { background:#6c757d; color:#fff; }
+
+    .device-img { width:100%; height:180px; object-fit:cover; border-radius:10px; background:#eaeaea; }
+    @media(min-width:768px){ .device-img { height:150px; } }
+
+    .preview-btn { margin-top:10px; }
+    /* Modal image */
+    .modal-img { width:100%; height:450px; object-fit:contain; background:#f8f9fa; border-radius:8px; }
+  </style>
+</head>
+<body>
+  <div class="container mt-4">
+    <h2>♻️ My Recycling Devices</h2>
+    <div id="recycling-devices" class="mb-4">
+      <p class="text-muted">Loading...</p>
+    </div>
+
+    <h2>💰 My Selling Devices</h2>
+    <div id="selling-devices">
+      <p class="text-muted">Loading...</p>
+    </div>
+  </div>
+
+  <!-- Image Preview Modal with Bootstrap Carousel -->
+  <div class="modal fade" id="imagePreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Device Images</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div id="previewCarousel" class="carousel slide" data-bs-ride="false">
+            <div class="carousel-inner" id="previewCarouselInner"></div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#previewCarousel" data-bs-slide="prev">
+              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#previewCarousel" data-bs-slide="next">
+              <span class="carousel-control-next-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Next</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+  'use strict';
+
+  (function () {
+    const recyclingContainer = document.getElementById('recycling-devices');
+    const sellingContainer = document.getElementById('selling-devices');
+    const previewModalEl = document.getElementById('imagePreviewModal');
+    const previewCarouselInner = document.getElementById('previewCarouselInner');
+    const defaultImage = '/images/default-device.png'; // adjust if your fallback path differs
+    const bsModal = new bootstrap.Modal(previewModalEl, { keyboard: true });
+
+    // Map status text -> CSS class (case-insensitive)
+    function getStatusClass(text) {
+      if (!text) return 'status-review';
+      const s = text.toLowerCase();
+      if (s.includes('pending')) return 'status-pending';
+      if (s.includes('on the way') || s.includes('ontheway') || s.includes('on the way')) return 'status-ontheway';
+      if (s.includes('disposed')) return 'status-disposed';
+      if (s.includes('recycling') || s.includes('center')) return 'status-recyclingcenter';
+      return 'status-review';
+    }
+
+    // Choose images array from device document (front/side/top)
+    function collectImages(device) {
+      const arr = [];
+      if (device.images && device.images.front) arr.push(device.images.front);
+      if (device.images && device.images.side) arr.push(device.images.side);
+      if (device.images && device.images.top) arr.push(device.images.top);
+      // Ensure paths are relative to /uploads/ or absolute paths returned by backend
+      return arr.map(src => src || '').filter(Boolean);
+    }
+
+    // Create a single device card element (DOM)
+    function createDeviceCard(device) {
+      const card = document.createElement('div');
+      card.className = 'card shadow-sm p-3';
+
+      const images = collectImages(device);
+      const displayImg = images.length ? images[0] : defaultImage;
+
+      const statusText = device.status || 'Pending';
+      const statusClass = getStatusClass(statusText);
+
+      // Build inner layout for sell vs recycle
+      if ((device.option || '').toLowerCase() === 'sell') {
+        // selling layout with image on left
+        const row = document.createElement('div');
+        row.className = 'row g-3 align-items-center';
+
+        const colImg = document.createElement('div');
+        colImg.className = 'col-md-4 col-12';
+        const imgEl = document.createElement('img');
+        imgEl.className = 'device-img rounded';
+        imgEl.src = displayImg;
+        imgEl.alt = device.brandModel || device.name || 'Device Image';
+        imgEl.addEventListener('error', () => { imgEl.src = defaultImage; });
+        colImg.appendChild(imgEl);
+
+        const colInfo = document.createElement('div');
+        colInfo.className = 'col-md-8 col-12';
+        const title = document.createElement('h5');
+        title.textContent = device.brandModel || device.name || 'Unnamed Device';
+        const cond = document.createElement('p');
+        cond.innerHTML = `<b>Condition:</b> ${device.condition || 'N/A'}`;
+        const year = document.createElement('p');
+        year.innerHTML = `<b>Purchase Year:</b> ${device.purchaseYear || 'N/A'}`;
+        const price = document.createElement('p');
+        if (device.price) price.innerHTML = `<b>Price:</b> ₹${device.price}`;
+
+        const statusSpan = document.createElement('span');
+        statusSpan.className = `status-badge ${statusClass}`;
+        statusSpan.textContent = statusText;
+
+        colInfo.appendChild(title);
+        colInfo.appendChild(cond);
+        colInfo.appendChild(year);
+        if (device.price) colInfo.appendChild(price);
+        colInfo.appendChild(statusSpan);
+
+        if (images.length) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'btn btn-outline-primary btn-sm preview-btn';
+          btn.textContent = 'Preview';
+          // attach event listener (CSP-safe)
+          btn.addEventListener('click', () => openPreview(images));
+          colInfo.appendChild(document.createElement('br'));
+          colInfo.appendChild(btn);
+        }
+
+        row.appendChild(colImg);
+        row.appendChild(colInfo);
+        card.appendChild(row);
+
+      } else {
+        // recycle layout simpler
+        const title = document.createElement('h5');
+        title.textContent = device.brandModel || device.name || 'Unnamed Device';
+        const cond = document.createElement('p');
+        cond.innerHTML = `<b>Condition:</b> ${device.condition || 'N/A'}`;
+        const year = document.createElement('p');
+        year.innerHTML = `<b>Purchase Year:</b> ${device.purchaseYear || 'N/A'}`;
+        const statusSpan = document.createElement('span');
+        statusSpan.className = `status-badge ${statusClass}`;
+        statusSpan.textContent = statusText;
+
+        card.appendChild(title);
+        card.appendChild(cond);
+        card.appendChild(year);
+        card.appendChild(statusSpan);
+
+        if (images.length) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'btn btn-outline-primary btn-sm preview-btn';
+          btn.textContent = 'Preview';
+          btn.addEventListener('click', () => openPreview(images));
+          card.appendChild(document.createElement('br'));
+          card.appendChild(btn);
+        }
+      }
+
+      return card;
+    }
+
+    // Render arrays into containers
+    function renderDevices(devices) {
+      // split by option
+      const recycleDevices = devices.filter(d => (d.option || '').toLowerCase() === 'recycle');
+      const sellDevices = devices.filter(d => (d.option || '').toLowerCase() === 'sell');
+
+      recyclingContainer.innerHTML = '';
+      sellingContainer.innerHTML = '';
+
+      if (recycleDevices.length === 0) {
+        recyclingContainer.innerHTML = '<p class="text-muted">No recycling devices found.</p>';
+      } else {
+        recycleDevices.forEach(d => recyclingContainer.appendChild(createDeviceCard(d)));
+      }
+
+      if (sellDevices.length === 0) {
+        sellingContainer.innerHTML = '<p class="text-muted">No selling devices found.</p>';
+      } else {
+        sellDevices.forEach(d => sellingContainer.appendChild(createDeviceCard(d)));
+      }
+    }
+
+    // Open bootstrap modal and populate carousel with images
+    function openPreview(images) {
+      // images is array of image paths (like "/uploads/filename.jpg" or full URLs)
+      previewCarouselInner.innerHTML = ''; // clear previous items
+
+      const imgs = (images && images.length) ? images : [defaultImage];
+
+      imgs.forEach((src, idx) => {
+        const item = document.createElement('div');
+        item.className = 'carousel-item' + (idx === 0 ? ' active' : '');
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = `Preview ${idx + 1}`;
+        img.className = 'd-block w-100 modal-img';
+        img.addEventListener('error', () => { img.src = defaultImage; });
+        item.appendChild(img);
+        previewCarouselInner.appendChild(item);
+      });
+
+      // reset carousel to first slide
+      const carouselEl = document.getElementById('previewCarousel');
+      const carousel = bootstrap.Carousel.getInstance(carouselEl) || new bootstrap.Carousel(carouselEl, { ride: false });
+      carousel.to(0);
+
+      bsModal.show();
+    }
+
+    // Fetch devices for logged-in user (uses your route /api/devices/my)
+    async function fetchMyDevices() {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        recyclingContainer.innerHTML = '<p class="text-danger">Please log in to view your devices.</p>';
+        sellingContainer.innerHTML = '';
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/devices/my', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        });
+
+        if (res.status === 401 || res.status === 403) {
+          recyclingContainer.innerHTML = '<p class="text-danger">Unauthorized. Please log in again.</p>';
+          sellingContainer.innerHTML = '';
+          return;
+        }
+
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body.message || 'Failed to fetch devices');
+        }
+
+        const devices = await res.json();
+        // devices is expected to be an array (from your router.get('/my') -> res.json(myDevices))
+        renderDevices(Array.isArray(devices) ? devices : []);
+      } catch (err) {
+        console.error('Error fetching devices:', err);
+        recyclingContainer.innerHTML = '<p class="text-danger">Error loading devices. Check console for details.</p>';
+        sellingContainer.innerHTML = '';
+      }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', fetchMyDevices);
+  })();
+  </script>
+</body>
+</html>

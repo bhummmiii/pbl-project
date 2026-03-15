@@ -1,0 +1,12 @@
+E-waste Recycling project:
+
+Api key-AIzaSyCRZXLCMd3bTpTrBBd9mP3AW1T38RyhDkg
+
+mangoDB
+username
+ewaste_user
+password
+ewaste_user
+
+To see data from browser:
+http://localhost:5000/api/devices

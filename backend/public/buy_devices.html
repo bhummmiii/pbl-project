@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buy Devices</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #f4f6f9; }
+    .card { border-radius: 15px; transition: transform 0.2s, box-shadow 0.2s; }
+    .card:hover { transform: translateY(-5px); box-shadow: 0px 6px 18px rgba(0,0,0,0.15); }
+    .card img { border-top-left-radius: 15px; border-top-right-radius: 15px; height: 200px; object-fit: cover; }
+    h2 { font-weight: bold; color: #333; }
+    .btn-primary { border-radius: 25px; padding: 8px 18px; }
+  </style>
+</head>
+<body>
+  <div class="container my-5">
+    <h2 class="mb-4 text-center">📱 Available Devices for Sale</h2>
+    <div class="row" id="devicesContainer">
+      <!-- Device cards will be inserted here dynamically -->
+    </div>
+  </div>
+
+  <!-- Contact Modal -->
+  <div class="modal fade" id="contactModal" tabindex="-1" aria-labelledby="contactModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4 shadow">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold" id="contactModalLabel">Seller Contact Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="contactDetails"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("userId");
+
+    if (!token) {
+      alert("Please login first.");
+      window.location.href = "login.html";
+    }
+
+    const API_URL = "http://localhost:5000/api/users/devices/sell";
+
+    async function fetchSellingDevices() {
+      try {
+        const res = await fetch(API_URL, {
+          headers: { Authorization: "Bearer " + token }
+        });
+
+        const data = await res.json();
+        const container = document.getElementById("devicesContainer");
+        container.innerHTML = "";
+
+        if (!data.success || !data.devices || data.devices.length === 0) {
+          container.innerHTML = `<p class="text-muted text-center w-100">No devices available for sale.</p>`;
+          return;
+        }
+
+        // Filter out devices added by logged-in user (compare sellerEmail with logged-in email if needed)
+        const otherDevices = data.devices; // backend already excludes current user
+
+        otherDevices.forEach(device => {
+          const col = document.createElement("div");
+          col.className = "col-md-4 mb-4";
+          col.innerHTML = `
+            <div class="card shadow-sm">
+              <img src="${device.image || 'https://via.placeholder.com/400x200'}" class="card-img-top" alt="Device Image">
+              <div class="card-body">
+                <h5 class="card-title">${device.deviceType || device.brandModel || "Unnamed Device"}</h5>
+                <p class="card-text text-muted">
+                  Condition: ${device.condition || "Unknown"} <br>
+                  Year: ${device.purchaseYear || "Unknown"} <br>
+                  Price: <strong>₹${device.price || "N/A"}</strong>
+                </p>
+                <button class="btn btn-primary w-100 request-btn"
+                  data-name="${device.sellerName}"
+                  data-email="${device.sellerEmail}"
+                  data-phone="${device.sellerPhone}">
+                  Request to Buy
+                </button>
+              </div>
+            </div>
+          `;
+          container.appendChild(col);
+        });
+
+        // Attach click listeners for all request buttons
+        document.querySelectorAll('.request-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const name = btn.dataset.name;
+            const email = btn.dataset.email;
+            const phone = btn.dataset.phone;
+            showContact(name, email, phone);
+          });
+        });
+
+      } catch (err) {
+        console.error("Error fetching selling devices:", err);
+      }
+    }
+
+    function showContact(name, email, phone) {
+      document.getElementById('contactDetails').innerHTML = `
+        <strong>Name:</strong> ${name} <br>
+        <strong>Email:</strong> ${email} <br>
+        <strong>Phone:</strong> ${phone}
+      `;
+      new bootstrap.Modal(document.getElementById('contactModal')).show();
+    }
+
+    fetchSellingDevices();
+  </script>
+</body>
+</html>

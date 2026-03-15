@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buy Devices</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f4f6f9;
+    }
+    .card {
+      border-radius: 15px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0px 6px 18px rgba(0,0,0,0.15);
+    }
+    .card img {
+      border-top-left-radius: 15px;
+      border-top-right-radius: 15px;
+      height: 200px;
+      object-fit: cover;
+    }
+    h2 {
+      font-weight: bold;
+      color: #333;
+    }
+    .btn-primary {
+      border-radius: 25px;
+      padding: 8px 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container my-5">
+    <h2 class="mb-4 text-center">📱 Available Devices for Sale</h2>
+    <div class="row">
+      <!-- Example Device Card -->
+      <div class="col-md-4 mb-4">
+        <div class="card shadow-sm">
+          <img src="https://via.placeholder.com/400x200" class="card-img-top" alt="Device Image">
+          <div class="card-body">
+            <h5 class="card-title">Samsung Galaxy S21</h5>
+            <p class="card-text text-muted">
+              Condition: Working <br>
+              Year: 2021 <br>
+              Price: <strong>₹18,000</strong>
+            </p>
+            <button class="btn btn-primary w-100"
+              onclick="showContact('Anushka', 'anushka@example.com', '+91 9876543210')">
+              Request to Buy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Another Device Card -->
+      <div class="col-md-4 mb-4">
+        <div class="card shadow-sm">
+          <img src="https://via.placeholder.com/400x200" class="card-img-top" alt="Device Image">
+          <div class="card-body">
+            <h5 class="card-title">Dell Inspiron Laptop</h5>
+            <p class="card-text text-muted">
+              Condition: Broken (for parts) <br>
+              Year: 2019 <br>
+              Price: <strong>₹7,500</strong>
+            </p>
+            <button class="btn btn-primary w-100"
+              onclick="showContact('Rahul', 'rahul@example.com', '+91 9123456789')">
+              Request to Buy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Third Device Card -->
+      <div class="col-md-4 mb-4">
+        <div class="card shadow-sm">
+          <img src="https://via.placeholder.com/400x200" class="card-img-top" alt="Device Image">
+          <div class="card-body">
+            <h5 class="card-title">iPhone 12</h5>
+            <p class="card-text text-muted">
+              Condition: Like New <br>
+              Year: 2022 <br>
+              Price: <strong>₹40,000</strong>
+            </p>
+            <button class="btn btn-primary w-100"
+              onclick="showContact('Priya', 'priya@example.com', '+91 9988776655')">
+              Request to Buy
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact Modal -->
+  <div class="modal fade" id="contactModal" tabindex="-1" aria-labelledby="contactModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4 shadow">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold" id="contactModalLabel">Seller Contact Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="contactDetails">
+          <!-- Seller info will be inserted here -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function showContact(name, email, phone) {
+      document.getElementById('contactDetails').innerHTML = `
+        <strong>Name:</strong> ${name} <br>
+        <strong>Email:</strong> ${email} <br>
+        <strong>Phone:</strong> ${phone}
+      `;
+      new bootstrap.Modal(document.getElementById('contactModal')).show();
+    }
+  </script>
+</body>
+</html>

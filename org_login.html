@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E-Waste Recycling Platform - Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(to right, #56ab2f, #a8e063);
+        overflow: hidden;
+    }
+
+    .login-card {
+        background: #ffffff;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        width: 400px;
+        max-width: 90%;
+        padding: 40px 30px;
+        text-align: center;
+        position: relative;
+        animation: fadeIn 1s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        0% {opacity: 0; transform: translateY(-20px);}
+        100% {opacity: 1; transform: translateY(0);}
+    }
+
+    .login-card h2 {
+        margin-bottom: 30px;
+        color: #333;
+        font-weight: 600;
+    }
+
+    .login-card input {
+        width: 100%;
+        padding: 15px 20px;
+        margin: 10px 0;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        transition: 0.3s;
+    }
+
+    .login-card input:focus {
+        border-color: #56ab2f;
+        box-shadow: 0 0 5px #56ab2f;
+        outline: none;
+    }
+
+    .login-card button {
+        width: 100%;
+        padding: 15px;
+        margin-top: 15px;
+        border: none;
+        border-radius: 10px;
+        background: linear-gradient(to right, #56ab2f, #a8e063);
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: 0.3s;
+    }
+
+    .login-card button:hover {
+        background: linear-gradient(to right, #a8e063, #56ab2f);
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .login-card .forgot-password {
+        display: block;
+        margin-top: 15px;
+        font-size: 14px;
+        color: #56ab2f;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+
+    .login-card .forgot-password:hover {
+        text-decoration: underline;
+    }
+
+    /* Icon style */
+    .login-card .icon {
+        font-size: 50px;
+        color: #56ab2f;
+        margin-bottom: 20px;
+    }
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<div class="login-card">
+    <div class="icon"><i class="fas fa-recycle"></i></div>
+    <h2>E-Waste Platform Login</h2>
+    <form id="loginForm">
+        <input type="text" id="username" placeholder="Username" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button type="submit">Login</button>
+        <a href="#" class="forgot-password">Forgot Password?</a>
+    </form>
+</div>
+
+<script>
+    const loginForm = document.getElementById('loginForm');
+    loginForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        // Example check - replace with your backend API
+        if(username === "admin" && password === "admin123") {
+            alert("Login successful!");
+            window.location.href = "dashboard.html";
+        } else {
+            alert("Invalid username or password.");
+        }
+    });
+</script>
+
+</body>
+</html>
