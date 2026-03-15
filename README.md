@@ -329,12 +329,13 @@ This platform encourages responsible recycling of electronic devices and contrib
 
 Project developed as part of **Project Based Learning (PBL)**.
 
-Students:
+### Students
 
-Bhumi Jha 
-Anushka Kolhe 
-Jagruti Bharsat
-Ankita Swami
+* Bhumi Jha
+* Anushka Kolhe
+* Jagruti Bharsat
+* Ankita Swami
+
 
 ---
 
