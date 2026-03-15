@@ -1,6 +1,6 @@
 E-waste Recycling project:
 
-Api key-AIzaSyCRZXLCMd3bTpTrBBd9mP3AW1T38RyhDkg
+Api key-
 
 mangoDB
 username
